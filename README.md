@@ -33,4 +33,4 @@ docker-compose build && docker-compose up
        ```
 
 ## License
-[MIT License](https://github.com/zeroc0d3/docker-postgresql-replication/blob/master/LICENSE) (MIT)
+[MIT License](https://github.com/zeroc0d3/docker-imoov/blob/master/LICENSE) (MIT)

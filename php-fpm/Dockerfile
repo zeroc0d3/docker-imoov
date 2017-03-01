@@ -48,8 +48,30 @@ RUN if [ ${INSTALL_XDEBUG} = true ]; then \
     docker-php-ext-enable xdebug \
 ;fi
 
+#####################################
+# PHP REDIS EXTENSION FOR PHP 7.0
+#####################################
+ARG INSTALL_PHPREDIS=false
+RUN if [ ${INSTALL_PHPREDIS} = true ]; then \
+    # Install Php Redis Extension
+    pecl install -o -f redis \
+    &&  rm -rf /tmp/pear \
+    &&  docker-php-ext-enable redis \
+;fi
+
 # Copy xdebug configration for remote debugging
 COPY ./xdebug.ini /usr/local/etc/php/conf.d/xdebug.ini
+
+#####################################
+# MongoDB:
+#####################################
+
+ARG INSTALL_MONGO=false
+RUN if [ ${INSTALL_MONGO} = true ]; then \
+    # Install the mongodb extension
+    pecl install mongodb && \
+    docker-php-ext-enable mongodb \
+;fi
 
 #####################################
 # ZipArchive:

@@ -17,9 +17,9 @@ services:
             context: ./workspace
             args:
                 - INSTALL_XDEBUG=true
+                - INSTALL_MONGO=false
                 - INSTALL_NODE=true
                 - INSTALL_YARN=true
-                - INSTALL_V8JS_EXTENSION=true
                 - COMPOSER_GLOBAL_INSTALL=true
                 - INSTALL_WORKSPACE_SSH=true
                 - INSTALL_LARAVEL_ENVOY=true
@@ -45,13 +45,14 @@ services:
         build:
             context: ./php-fpm
             args:
-                - INSTALL_XDEBUG=true
-                - INSTALL_ZIP_ARCHIVE=true
-                - INSTALL_BCMATH=true
+                - INSTALL_XDEBUG=false
+                - INSTALL_MONGO=false
+                - INSTALL_ZIP_ARCHIVE=false
+                - INSTALL_BCMATH=false
+                - INSTALL_PHPREDIS=false
                 - INSTALL_MEMCACHED=false
                 - INSTALL_OPCACHE=false
                 - INSTALL_EXIF=false
-                - CODEIGNITER=false
             dockerfile: Dockerfile
         volumes_from:
             - imoov-applications
@@ -163,6 +164,35 @@ services:
 #       links:
 #            - imoov-postgres
 
+### MongoDB Container #######################################
+
+#    imoov-mongo:
+#        build: ./mongo
+#        ports:
+#            - "27017:27017"
+#        volumes:
+#            - mongo:/data/db
+
+### Redis Container #########################################
+
+#    imoov-redis:
+#        build: ./redis
+#        volumes:
+#            - redis:/data
+#        ports:
+#            - "6379:6379"
+
+### Memcached Container #####################################
+
+#    imoov-memcached:
+#        build: ./memcached
+#        volumes:
+#            - memcached:/var/lib/memcached
+#        ports:
+#            - "11211:11211"
+#        links:
+#            - imoov-php-fpm
+
 ### Volumes Setup ###########################################
 
 volumes:
@@ -174,5 +204,11 @@ volumes:
 #        driver: "local"
     phpmyadmin:
         driver: "local"
+#    mongo:
+#        driver: "local"    
+#    redis:
+#        driver: "local"    
+#    memcached:
+#        driver: "local"    
     sessions:    ## nothing is connected to this (- ./data/sessions:/sessions)
         driver: "local"

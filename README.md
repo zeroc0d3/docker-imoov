@@ -46,10 +46,10 @@ docker-compose build && docker-compose up
        ```
        cd imoov
        ```
-     - Run the composer
-       ``` 
-       composer install
-       ```
+   * Run the composer
+     ``` 
+     composer install
+     ```
        
 ## License
 [MIT License](https://github.com/zeroc0d3/docker-imoov/blob/master/LICENSE) (MIT)

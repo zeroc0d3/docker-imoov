@@ -42,7 +42,7 @@ docker-compose build && docker-compose up
        ``` 
        git submodule add https://github.com/zeroc0d3/imoov
        ```
-    * Install dependency repository imoov with composer
+   * Install dependency repository imoov with composer
      - Go to path "imoov" (workspace/imooov)
        ```
        cd imoov

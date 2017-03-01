@@ -110,14 +110,89 @@ RUN echo "" >> ~/.bashrc && \
 
 ARG INSTALL_XDEBUG=false
 RUN if [ ${INSTALL_XDEBUG} = true ]; then \
-    # Load the xdebug extension only with phpunit commands
-    apt-get update && \
-    apt-get install -y --force-yes php7.0-xdebug && \
-    sed -i 's/^/;/g' /etc/php/7.0/cli/conf.d/20-xdebug.ini && \
-    echo "alias phpunit='php -dzend_extension=xdebug.so /var/www/vendor/bin/phpunit'" >> ~/.bashrc \
+    # Install the xdebug extension
+    pecl install xdebug && \
+    docker-php-ext-enable xdebug \
 ;fi
-# ADD for REMOTE debugging
-COPY ./xdebug.ini /etc/php/7.0/cli/conf.d/xdebug.ini
+
+#####################################
+# PHP REDIS EXTENSION FOR PHP 7.0
+#####################################
+ARG INSTALL_PHPREDIS=false
+RUN if [ ${INSTALL_PHPREDIS} = true ]; then \
+    # Install Php Redis Extension
+    pecl install -o -f redis \
+    &&  rm -rf /tmp/pear \
+    &&  docker-php-ext-enable redis \
+;fi
+
+# Copy xdebug configration for remote debugging
+COPY ./xdebug.ini /usr/local/etc/php/conf.d/xdebug.ini
+
+#####################################
+# MongoDB:
+#####################################
+
+ARG INSTALL_MONGO=false
+RUN if [ ${INSTALL_MONGO} = true ]; then \
+    # Install the mongodb extension
+    pecl install mongodb && \
+    docker-php-ext-enable mongodb \
+;fi
+
+#####################################
+# ZipArchive:
+#####################################
+
+ARG INSTALL_ZIP_ARCHIVE=false
+RUN if [ ${INSTALL_ZIP_ARCHIVE} = true ]; then \
+    # Install the zip extension
+    pecl install zip && \
+    docker-php-ext-enable zip \
+;fi
+
+#####################################
+# bcmath:
+#####################################
+
+ARG INSTALL_BCMATH=false
+RUN if [ ${INSTALL_BCMATH} = true ]; then \
+    # Install the bcmath extension
+    docker-php-ext-install bcmath \
+;fi
+
+#####################################
+# PHP Memcached:
+#####################################
+
+ARG INSTALL_MEMCACHED=false
+RUN if [ ${INSTALL_MEMCACHED} = true ]; then \
+    # Install the php memcached extension
+    curl -L -o /tmp/memcached.tar.gz "https://github.com/php-memcached-dev/php-memcached/archive/php7.tar.gz" \
+    && mkdir -p memcached \
+    && tar -C memcached -zxvf /tmp/memcached.tar.gz --strip 1 \
+    && ( \
+        cd memcached \
+        && phpize \
+        && ./configure \
+        && make -j$(nproc) \
+        && make install \
+    ) \
+    && rm -r memcached \
+    && rm /tmp/memcached.tar.gz \
+    && docker-php-ext-enable memcached \
+;fi
+
+#####################################
+# Exif:
+#####################################
+
+ARG INSTALL_EXIF=false
+RUN if [ ${INSTALL_EXIF} = true ]; then \
+    # Enable Exif PHP extentions requirements
+    docker-php-ext-install exif && \
+    docker-php-ext-enable exif \
+;fi
 
 #####################################
 # ssh:

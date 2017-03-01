@@ -166,7 +166,7 @@ services:
 ### Volumes Setup ###########################################
 
 volumes:
-   mysql:
+    mysql:
         driver: "local"
 #    postgres:
 #        driver: "local"

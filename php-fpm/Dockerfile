@@ -10,7 +10,7 @@
 #    https://hub.docker.com/r/laradock/php-fpm/tags/
 #
 
-FROM laradock/php-fpm:5.6--1.2
+FROM laradock/php-fpm:7.0--1.2
 
 MAINTAINER ZeroC0D3 Team <zeroc0d3.team@gmail.com>
 
@@ -34,6 +34,7 @@ MAINTAINER ZeroC0D3 Team <zeroc0d3.team@gmail.com>
 # in the `docker-compose.yml` before the build.
 # Example:
 #   - INSTALL_ZIP_ARCHIVE=true
+#   - ...
 #
 
 #####################################
@@ -72,9 +73,42 @@ RUN if [ ${INSTALL_BCMATH} = true ]; then \
 ;fi
 
 #####################################
-# Opcache:
+# PHP Memcached:
 #####################################
 
+ARG INSTALL_MEMCACHED=false
+RUN if [ ${INSTALL_MEMCACHED} = true ]; then \
+    # Install the php memcached extension
+    curl -L -o /tmp/memcached.tar.gz "https://github.com/php-memcached-dev/php-memcached/archive/php7.tar.gz" \
+    && mkdir -p memcached \
+    && tar -C memcached -zxvf /tmp/memcached.tar.gz --strip 1 \
+    && ( \
+        cd memcached \
+        && phpize \
+        && ./configure \
+        && make -j$(nproc) \
+        && make install \
+    ) \
+    && rm -r memcached \
+    && rm /tmp/memcached.tar.gz \
+    && docker-php-ext-enable memcached \
+;fi
+
+#####################################
+# Exif:
+#####################################
+
+ARG INSTALL_EXIF=false
+RUN if [ ${INSTALL_EXIF} = true ]; then \
+    # Enable Exif PHP extentions requirements
+    docker-php-ext-install exif && \
+    docker-php-ext-enable exif \
+;fi
+
+
+#####################################
+# Opcache:
+#####################################
 ARG INSTALL_OPCACHE=false
 RUN if [ ${INSTALL_OPCACHE} = true ]; then \
     docker-php-ext-install opcache && \

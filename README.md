@@ -32,5 +32,24 @@ docker-compose build && docker-compose up
        http://localhost:8080
        ```
 
+## Submodule Imoov:
+   * Clone Imoov as submodule
+     - Go to path "workspace" docker-imoov
+       ```
+       cd workspace
+       ```  
+     - Clone the imoov repository
+       ``` 
+       git submodule add https://github.com/zeroc0d3/imoov
+       ```
+     - Go to path "imoov" (workspace/imooov)
+       ```
+       cd imoov
+       ```
+     - Run the composer
+       ``` 
+       composer install
+       ```
+       
 ## License
 [MIT License](https://github.com/zeroc0d3/docker-imoov/blob/master/LICENSE) (MIT)

@@ -1,180 +1,93 @@
 version: '2'
-
 services:
+    database:
+        build: ./mariadb
+        environment:
+            MYSQL_ROOT_PASSWORD: password
+            MYSQL_DATABASE: dbname
+            MYSQL_USER: admin
+            MYSQL_PASSWORD: password
+        networks:
+            - backend
 
-### Applications Code Container #############################
-
-    imoov-applications:
-        image: tianon/true
+    php:
+        build: ./php
         volumes:
-            - ../:/var/www
-#            - ../sample/:/var/www/sample
+            - ./web:/home/site/web
+        links:
+            - database
+        networks:
+            - backend
 
-### Workspace Utilities Container ###########################
+    server:
+        build: ./nginx
+        volumes:
+            - ./web:/home/site/web
+        links:
+            - php
+            - database
+        networks:
+            - frontend
+            - backend
 
-    imoov-workspace:
-        build:
-            context: ./workspace
-            args:
-                - INSTALL_XDEBUG=false
-                - INSTALL_SOAP=false
-                - INSTALL_NODE=false
-                - INSTALL_YARN=false
-                - INSTALL_V8JS_EXTENSION=false
-                - COMPOSER_GLOBAL_INSTALL=false
-                - INSTALL_WORKSPACE_SSH=false
-                - INSTALL_LARAVEL_ENVOY=false
-                - INSTALL_DEPLOYER=false
-                - INSTALL_LINUXBREW=false
-                - PUID=1000
-                - PGID=1000
-                - NODE_VERSION=stable
-                - YARN_VERSION=latest
-                - TZ=UTC
-        volumes_from:
-            - imoov-applications
-        extra_hosts:
-            # IMPORTANT: Replace with your Docker Host IP (will be appended to /etc/hosts)
-            - "dockerhost:172.21.0.2"
-        ports:
-           - "2222:22"
-        tty: true
+    server2:
+        build: ./hhvm
+        volumes:
+            - ./web:/var/www/public
+        links:
+            - database
+        networks:
+            - frontend
+            - backend
 
-### PHP-FPM Container #######################################
-
-    imoov-php-fpm:
-        build:
-            context: ./php-fpm
-            args:
-                - INSTALL_XDEBUG=false
-                - INSTALL_SOAP=false
-                - INSTALL_ZIP_ARCHIVE=false
-                - INSTALL_BCMATH=false
-                - INSTALL_MEMCACHED=false
-                - INSTALL_OPCACHE=false
-                - INSTALL_EXIF=false
-                - CODEIGNITER=false
-            dockerfile: Dockerfile
-        volumes_from:
-            - imoov-applications
+    proxy:
+        build: ./varnish
         expose:
-            - "9000"
-        links:
-            - imoov-workspace
-        extra_hosts:
-            # IMPORTANT: Replace with your Docker Host IP (will be appended to /etc/hosts)
-            - "dockerhost:172.21.0.2"
+            - 8080
         environment:
-            # IMPORTANT: Set the Remote Interpreter entry matching name to `laravel`
-            - PHP_IDE_CONFIG=serverName=laravel
-
-### Nginx Server Container ##################################
-
-    imoov-nginx:
-        build:
-            context: ./nginx
-            args:
-                - PHP_UPSTREAM=php-fpm
-        volumes_from:
-            - imoov-applications
-        volumes:
-            - ./logs/nginx/:/var/log/nginx
-            - ./nginx/sites/:/etc/nginx/sites-available
-        ports:
-            - "80:80"
-            - "443:443"
+            VARNISH_CONFIG: /etc/varnish/default.vcl
+            CACHE_SIZE: 128m
+            VARNISHD_PARAMS: -p default_ttl=3600 -p default_grace=3600
+            VARNISH_PORT: 8080
+            BACKEND_HOST: server
+            BACKEND_PORT: 8888
+            VARNISH_SERVER: SERVER1
         links:
-            - imoov-php-fpm
+            - server
+        networks:
+            - frontend
 
-### HHVM Container ##########################################
-
-#    imoov-hhvm:
-#        build: ./hhvm
-#        volumes_from:
-#            - imoov-applications
-#        expose:
-#            - "9000"
-#        links:
-#            - imoov-workspace
-
-### MySQL Container #########################################
-
-    imoov-mysql:
-        build:
-            context: ./mysql
-            args:
-                - MYSQL_DATABASE=zeroc0d3_dbname
-                - MYSQL_USER=zeroc0d3_user
-                - MYSQL_PASSWORD=zeroc0d3_password
-                - MYSQL_ROOT_PASSWORD=zeroc0d3_root
-        volumes:
-            - mysql:/var/lib/mysql
-        ports:
-            - "3306:3306"
-
-### MariaDB Container #######################################
-
-#    imoov-mariadb:
-#        build: ./mariadb
-#        volumes:
-#            - mariadb:/var/lib/mysql
-#        ports:
-#            - "3306:3306"
-#        environment:
-#            MYSQL_DATABASE: zeroc0d3_dbname
-#            MYSQL_USER: zeroc0d3_user
-#            MYSQL_PASSWORD: zeroc0d3_password
-#            MYSQL_ROOT_PASSWORD: zeroc0d3_root
-
-### PostgreSQL Container ####################################
-
-#    imoov-postgres:
-#        build: ./postgres
-#        volumes:
-#            - postgres:/var/lib/postgresql/data
-#        ports:
-#            - "5432:5432"
-#        environment:
-#            POSTGRES_DB: zeroc0d3_dbname
-#            POSTGRES_USER: zeroc0d3_user
-#            POSTGRES_PASSWORD: zeroc0d3_password
-
-### phpMyAdmin Container ####################################
-
-    imoov-phpmyadmin:
-        build: ./phpmyadmin
+    proxy2:
+        build: ./varnish
+        expose:
+            - 8080
         environment:
-            PMA_ARBITRARY: 1
-            MYSQL_USER: zeroc0d3_user
-            MYSQL_PASSWORD: zeroc0d3_password
-            MYSQL_ROOT_PASSWORD: zeroc0d3_root
-        ports:
-            - "8080:80"
+            VARNISH_CONFIG: /etc/varnish/default.vcl
+            CACHE_SIZE: 128m
+            VARNISHD_PARAMS: -p default_ttl=3600 -p default_grace=3600
+            VARNISH_PORT: 8080
+            BACKEND_HOST: server2
+            BACKEND_PORT: 8888
+            VARNISH_SERVER: SERVER2
         links:
-            # for mysql container
-            - "imoov-mysql:db"
-            # for mariadb container
-            # - "imoov-mariadb:db"
+            - server2
+        networks:
+            - frontend
 
-### pgAdmin Container #######################################
+    balancer:
+        build: ./haproxy
+        ports:
+            - 80:80
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+        links:
+            - proxy
+            - proxy2
+        networks:
+            - frontend
 
-#   imoov-pgadmin:
-#       build: ./pgadmin
-#       ports:
-#          - "5050:5050"
-#       links:
-#            - imoov-postgres
-
-### Volumes Setup ###########################################
-
-volumes:
-   mysql:
-        driver: "local"
-#    postgres:
-#        driver: "local"
-#    mariadb:
-#        driver: "local"
-    phpmyadmin:
-        driver: "local"
-    sessions:    ## nothing is connected to this (- ./data/sessions:/sessions)
-        driver: "local"
+networks:
+    frontend:
+        driver: bridge
+    backend:
+        driver: bridge

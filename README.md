@@ -42,14 +42,15 @@ docker-compose build && docker-compose up
        ``` 
        git submodule add https://github.com/zeroc0d3/imoov
        ```
+    * Install dependency repository imoov with composer
      - Go to path "imoov" (workspace/imooov)
        ```
        cd imoov
        ```
-   * Run the composer
-     ``` 
-     composer install
-     ```
+     - Run the composer install
+       ``` 
+       composer install
+       ```
        
 ## License
 [MIT License](https://github.com/zeroc0d3/docker-imoov/blob/master/LICENSE) (MIT)

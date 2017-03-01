@@ -35,7 +35,7 @@ services:
             - imoov-applications
         extra_hosts:
             # IMPORTANT: Replace with your Docker Host IP (will be appended to /etc/hosts)
-            - "dockerhost:172.21.0.99"
+            - "dockerhost:172.21.0.2"
         ports:
            - "2222:22"
         tty: true
@@ -63,7 +63,7 @@ services:
             - imoov-workspace
         extra_hosts:
             # IMPORTANT: Replace with your Docker Host IP (will be appended to /etc/hosts)
-            - "dockerhost:172.21.0.99"
+            - "dockerhost:172.21.0.2"
         environment:
             # IMPORTANT: Set the Remote Interpreter entry matching name to `laravel`
             - PHP_IDE_CONFIG=serverName=laravel
@@ -86,23 +86,6 @@ services:
         links:
             - imoov-php-fpm
 
-### Apache Server Container #################################
-
-#    imoov-apache2:
-#        build:
-#            context: ./apache2
-#            args:
-#                - PHP_SOCKET=php-fpm:9000
-#        volumes_from:
-#            - imoov-applications
-#        volumes:
-#            - ./logs/apache2:/var/log/apache2
-#        ports:
-#            - "80:80"
-#            - "443:443"
-#        links:
-#            - php-fpm
-
 ### HHVM Container ##########################################
 
 #    imoov-hhvm:
@@ -116,32 +99,32 @@ services:
 
 ### MySQL Container #########################################
 
-#    imoov-mysql:
-#        build:
-#            context: ./mysql
-#            args:
-#                - MYSQL_DATABASE=zeroc0d3_dbname
-#                - MYSQL_USER=zeroc0d3_user
-#                - MYSQL_PASSWORD=zeroc0d3_password
-#                - MYSQL_ROOT_PASSWORD=zeroc0d3_root
-#        volumes:
-#            - mysql:/var/lib/mysql
-#        ports:
-#            - "3306:3306"
+    imoov-mysql:
+        build:
+            context: ./mysql
+            args:
+                - MYSQL_DATABASE=zeroc0d3_dbname
+                - MYSQL_USER=zeroc0d3_user
+                - MYSQL_PASSWORD=zeroc0d3_password
+                - MYSQL_ROOT_PASSWORD=zeroc0d3_root
+        volumes:
+            - mysql:/var/lib/mysql
+        ports:
+            - "3306:3306"
 
 ### MariaDB Container #######################################
 
-    imoov-mariadb:
-        build: ./mariadb
-        volumes:
-            - mariadb:/var/lib/mysql
-        ports:
-            - "3306:3306"
-        environment:
-            MYSQL_DATABASE: zeroc0d3_dbname
-            MYSQL_USER: zeroc0d3_user
-            MYSQL_PASSWORD: zeroc0d3_password
-            MYSQL_ROOT_PASSWORD: zeroc0d3_root
+#    imoov-mariadb:
+#        build: ./mariadb
+#        volumes:
+#            - mariadb:/var/lib/mysql
+#        ports:
+#            - "3306:3306"
+#        environment:
+#            MYSQL_DATABASE: zeroc0d3_dbname
+#            MYSQL_USER: zeroc0d3_user
+#            MYSQL_PASSWORD: zeroc0d3_password
+#            MYSQL_ROOT_PASSWORD: zeroc0d3_root
 
 ### PostgreSQL Container ####################################
 
@@ -162,16 +145,16 @@ services:
         build: ./phpmyadmin
         environment:
             PMA_ARBITRARY: 1
-            MYSQL_USER: homestead
-            MYSQL_PASSWORD: secret
-            MYSQL_ROOT_PASSWORD: root
+            MYSQL_USER: zeroc0d3_user
+            MYSQL_PASSWORD: zeroc0d3_password
+            MYSQL_ROOT_PASSWORD: zeroc0d3_root
         ports:
             - "8080:80"
         links:
             # for mysql container
-            #- "imoov-mysql:db"
+            - "imoov-mysql:db"
             # for mariadb container
-             - "imoov-mariadb:db"
+            # - "imoov-mariadb:db"
 
 ### pgAdmin Container #######################################
 
@@ -185,12 +168,12 @@ services:
 ### Volumes Setup ###########################################
 
 volumes:
-#   mysql:
-#        driver: "local"
+   mysql:
+        driver: "local"
 #    postgres:
 #        driver: "local"
-    mariadb:
-        driver: "local"
+#    mariadb:
+#        driver: "local"
     phpmyadmin:
         driver: "local"
     sessions:    ## nothing is connected to this (- ./data/sessions:/sessions)

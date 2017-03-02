@@ -8,7 +8,7 @@ services:
         image: tianon/true
         volumes:
             - ../:/var/www
-#            - ../sample/:/var/www/sample
+            - ../imoov/:/var/www/imoov
 
 ### Workspace Utilities Container ###########################
 
@@ -73,7 +73,7 @@ services:
         build:
             context: ./nginx
             args:
-                - PHP_UPSTREAM=php-fpm
+                - PHP_UPSTREAM=imoov-php-fpm
         volumes_from:
             - imoov-applications
         volumes:
@@ -87,14 +87,14 @@ services:
 
 ### HHVM Container ##########################################
 
-#    imoov-hhvm:
-#        build: ./hhvm
-#        volumes_from:
-#            - imoov-applications
-#        expose:
-#            - "9000"
-#        links:
-#            - imoov-workspace
+    imoov-hhvm:
+        build: ./hhvm
+        volumes_from:
+            - imoov-applications
+        expose:
+            - "9000"
+        links:
+            - imoov-workspace
 
 ### MySQL Container #########################################
 

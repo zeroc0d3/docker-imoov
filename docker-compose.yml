@@ -20,7 +20,7 @@ services:
                 - INSTALL_MONGO=false
                 - INSTALL_NODE=true
                 - INSTALL_YARN=true
-                - COMPOSER_GLOBAL_INSTALL=true
+                - COMPOSER_GLOBAL_INSTALL=false
                 - INSTALL_WORKSPACE_SSH=true
                 - INSTALL_LARAVEL_ENVOY=true
                 - INSTALL_DEPLOYER=true

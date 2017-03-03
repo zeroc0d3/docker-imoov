@@ -84,8 +84,8 @@ echo 'export PATH="~/.composer/vendor/bin:$PATH"' >> ~/.bashrc
 #####################################
 USER root
 
-COPY ./crontab /etc/cron.d
-RUN chmod -R 644 /etc/cron.d
+# COPY ./crontab /etc/cron.d
+# RUN chmod -R 644 /etc/cron.d
 
 #####################################
 # User Aliases

@@ -32,15 +32,11 @@ docker-compose build && docker-compose up
        http://localhost:8080
        ```
 
-## Submodule Imoov:
-   * Clone Imoov as submodule
-     - Go to path "workspace" docker-imoov
-       ```
-       cd workspace
-       ```  
+## Submodule Docker Imoov:
+   * Clone Imoov as main module
      - Clone the imoov repository
        ``` 
-       git submodule add https://github.com/zeroc0d3/imoov
+       git clone https://github.com/zeroc0d3/imoov
        ```
    * Install dependency repository imoov with composer
      - Go to path "imoov" (workspace/imooov)
@@ -51,7 +47,26 @@ docker-compose build && docker-compose up
        ``` 
        composer install
        ```
-       
+   * Clone Docker-Imoov as submodule
+     - Clone the imoov repository
+       ``` 
+       git submodule add https://github.com/zeroc0d3/docker-imoov docker
+       ``` 
+   * Running Imoov with Docker
+     - Open docker folder inside imoov
+       ``` 
+       cd docker
+       ``` 
+     - Build container for the first time (or rebuild all container)
+       ```
+       docker-compose build && docker-compose up --force-recreate
+       ```
+     - If container already build you can start this:
+       ```
+       docker-compose up
+       ```
+ 
+  
 ## Optional:
    * Run kitematic & select the docker container name, click on "EXEC" button, or using:
 	   ```docker exec -it [container_id] bash```

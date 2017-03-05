@@ -52,5 +52,9 @@ docker-compose build && docker-compose up
        composer install
        ```
        
+## Optional:
+   * Run kitematic & select the docker container name, click on "EXEC" button, or using:
+	   ```docker exec -it [container_id] bash```
+	          
 ## License
 [MIT License](https://github.com/zeroc0d3/docker-imoov/blob/master/LICENSE) (MIT)

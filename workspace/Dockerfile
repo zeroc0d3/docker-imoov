@@ -20,7 +20,7 @@ MAINTAINER ZeroC0D3 Team <zeroc0d3.team@gmail.com>
 #--------------------------------------------------------------------------
 #
 # Mandatory Software's such as ("php7.0-cli", "git", "vim", ....) are
-# installed on the base image 'zeroc0d3/workspace' image. If you want
+# installed on the base image 'laradock/workspace' image. If you want
 # to add more Software's or remove existing one, you need to edit the
 # base image (https://github.com/LaraDock/workspace).
 #
@@ -44,9 +44,25 @@ MAINTAINER ZeroC0D3 Team <zeroc0d3.team@gmail.com>
 # Add a non-root user to prevent files being created with root permissions on host machine.
 ARG PUID=1000
 ARG PGID=1000
-RUN groupadd -g $PGID zeroc0d3 && \
-    useradd -u $PUID -g zeroc0d3 -m zeroc0d3
+RUN groupadd -g $PGID laradock && \
+    useradd -u $PUID -g laradock -m laradock
 
+
+#####################################
+# SOAP:
+#####################################
+USER root
+
+ARG INSTALL_SOAP=false
+ENV INSTALL_SOAP ${INSTALL_SOAP}
+
+RUN if [ ${INSTALL_SOAP} = true ]; then \
+  # Install the PHP SOAP extension
+  apt-get -y update && \
+  add-apt-repository -y ppa:ondrej/php && \
+  apt-get -y install libxml2-dev php7.0-soap && \
+  echo "extension=soap.so" >> /etc/php/7.0/cli/conf.d/40-soap.ini \
+;fi
 
 #####################################
 # Set Timezone
@@ -61,11 +77,11 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 #####################################
 
 # Add the composer.json
-COPY ./composer.json /home/zeroc0d3/.composer/composer.json
+COPY ./composer.json /home/laradock/.composer/composer.json
 
-# Make sure that ~/.composer belongs to zeroc0d3
-RUN chown -R zeroc0d3:zeroc0d3 /home/zeroc0d3/.composer
-USER zeroc0d3
+# Make sure that ~/.composer belongs to laradock
+RUN chown -R laradock:laradock /home/laradock/.composer
+USER laradock
 
 # Check if global install need to be ran
 ARG COMPOSER_GLOBAL_INSTALL=false
@@ -84,24 +100,24 @@ echo 'export PATH="~/.composer/vendor/bin:$PATH"' >> ~/.bashrc
 #####################################
 USER root
 
-# COPY ./crontab /etc/cron.d
-# RUN chmod -R 644 /etc/cron.d
+COPY ./crontab /etc/cron.d
+RUN chmod -R 644 /etc/cron.d
 
 #####################################
 # User Aliases
 #####################################
 
-USER zeroc0d3
-COPY ./aliases.sh /home/zeroc0d3/aliases.sh
+USER laradock
+COPY ./aliases.sh /home/laradock/aliases.sh
 RUN echo "" >> ~/.bashrc && \
     echo "# Load Custom Aliases" >> ~/.bashrc && \
-    echo "source /home/zeroc0d3/aliases.sh" >> ~/.bashrc && \
+    echo "source /home/laradock/aliases.sh" >> ~/.bashrc && \
     echo "" >> ~/.bashrc
     
 USER root
 RUN echo "" >> ~/.bashrc && \
     echo "# Load Custom Aliases" >> ~/.bashrc && \
-    echo "source /home/zeroc0d3/aliases.sh" >> ~/.bashrc && \
+    echo "source /home/laradock/aliases.sh" >> ~/.bashrc && \
     echo "" >> ~/.bashrc
 
 #####################################
@@ -110,89 +126,14 @@ RUN echo "" >> ~/.bashrc && \
 
 ARG INSTALL_XDEBUG=false
 RUN if [ ${INSTALL_XDEBUG} = true ]; then \
-    # Install the xdebug extension
-    pecl install xdebug && \
-    docker-php-ext-enable xdebug \
+    # Load the xdebug extension only with phpunit commands
+    apt-get update && \
+    apt-get install -y --force-yes php7.0-xdebug && \
+    sed -i 's/^/;/g' /etc/php/7.0/cli/conf.d/20-xdebug.ini && \
+    echo "alias phpunit='php -dzend_extension=xdebug.so /var/www/vendor/bin/phpunit'" >> ~/.bashrc \
 ;fi
-
-#####################################
-# PHP REDIS EXTENSION FOR PHP 7.0
-#####################################
-ARG INSTALL_PHPREDIS=false
-RUN if [ ${INSTALL_PHPREDIS} = true ]; then \
-    # Install Php Redis Extension
-    pecl install -o -f redis \
-    &&  rm -rf /tmp/pear \
-    &&  docker-php-ext-enable redis \
-;fi
-
-# Copy xdebug configration for remote debugging
-COPY ./xdebug.ini /usr/local/etc/php/conf.d/xdebug.ini
-
-#####################################
-# MongoDB:
-#####################################
-
-ARG INSTALL_MONGO=false
-RUN if [ ${INSTALL_MONGO} = true ]; then \
-    # Install the mongodb extension
-    pecl install mongodb && \
-    docker-php-ext-enable mongodb \
-;fi
-
-#####################################
-# ZipArchive:
-#####################################
-
-ARG INSTALL_ZIP_ARCHIVE=false
-RUN if [ ${INSTALL_ZIP_ARCHIVE} = true ]; then \
-    # Install the zip extension
-    pecl install zip && \
-    docker-php-ext-enable zip \
-;fi
-
-#####################################
-# bcmath:
-#####################################
-
-ARG INSTALL_BCMATH=false
-RUN if [ ${INSTALL_BCMATH} = true ]; then \
-    # Install the bcmath extension
-    docker-php-ext-install bcmath \
-;fi
-
-#####################################
-# PHP Memcached:
-#####################################
-
-ARG INSTALL_MEMCACHED=false
-RUN if [ ${INSTALL_MEMCACHED} = true ]; then \
-    # Install the php memcached extension
-    curl -L -o /tmp/memcached.tar.gz "https://github.com/php-memcached-dev/php-memcached/archive/php7.tar.gz" \
-    && mkdir -p memcached \
-    && tar -C memcached -zxvf /tmp/memcached.tar.gz --strip 1 \
-    && ( \
-        cd memcached \
-        && phpize \
-        && ./configure \
-        && make -j$(nproc) \
-        && make install \
-    ) \
-    && rm -r memcached \
-    && rm /tmp/memcached.tar.gz \
-    && docker-php-ext-enable memcached \
-;fi
-
-#####################################
-# Exif:
-#####################################
-
-ARG INSTALL_EXIF=false
-RUN if [ ${INSTALL_EXIF} = true ]; then \
-    # Enable Exif PHP extentions requirements
-    docker-php-ext-install exif && \
-    docker-php-ext-enable exif \
-;fi
+# ADD for REMOTE debugging
+COPY ./xdebug.ini /etc/php/7.0/cli/conf.d/xdebug.ini
 
 #####################################
 # ssh:
@@ -214,6 +155,35 @@ RUN if [ ${INSTALL_WORKSPACE_SSH} = true ]; then \
 ;fi
 
 #####################################
+# MongoDB:
+#####################################
+
+# Check if Mongo needs to be installed
+ARG INSTALL_MONGO=false
+ENV INSTALL_MONGO ${INSTALL_MONGO}
+RUN if [ ${INSTALL_MONGO} = true ]; then \
+    # Install the mongodb extension
+    pecl install mongodb && \
+    echo "extension=mongodb.so" >> /etc/php/7.0/cli/conf.d/30-mongodb.ini \
+;fi
+
+#####################################
+# Drush:
+#####################################
+USER root
+ENV DRUSH_VERSION 8.1.2
+ARG INSTALL_DRUSH=false
+ENV INSTALL_DRUSH ${INSTALL_DRUSH}
+RUN if [ ${INSTALL_DRUSH} = true ]; then \
+    # Install Drush 8 with the phar file.
+    curl -fsSL -o /usr/local/bin/drush https://github.com/drush-ops/drush/releases/download/$DRUSH_VERSION/drush.phar | bash && \
+    chmod +x /usr/local/bin/drush && \
+    drush core-status \
+;fi
+
+USER laradock
+
+#####################################
 # Node / NVM:
 #####################################
 
@@ -222,7 +192,7 @@ ARG NODE_VERSION=stable
 ENV NODE_VERSION ${NODE_VERSION}
 ARG INSTALL_NODE=false
 ENV INSTALL_NODE ${INSTALL_NODE}
-ENV NVM_DIR /home/zeroc0d3/.nvm
+ENV NVM_DIR /home/laradock/.nvm
 RUN if [ ${INSTALL_NODE} = true ]; then \
     # Install nvm (A Node Version Manager)
     curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.31.6/install.sh | bash && \
@@ -246,7 +216,7 @@ USER root
 
 RUN if [ ${INSTALL_NODE} = true ]; then \
     echo "" >> ~/.bashrc && \
-    echo 'export NVM_DIR="/home/zeroc0d3/.nvm"' >> ~/.bashrc && \
+    echo 'export NVM_DIR="/home/laradock/.nvm"' >> ~/.bashrc && \
     echo '[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm' >> ~/.bashrc \
 ;fi
 
@@ -254,7 +224,7 @@ RUN if [ ${INSTALL_NODE} = true ]; then \
 # YARN:
 #####################################
 
-USER zeroc0d3
+USER laradock
 
 ARG INSTALL_YARN=false
 ENV INSTALL_YARN ${INSTALL_YARN}
@@ -277,8 +247,37 @@ USER root
 
 RUN if [ ${INSTALL_YARN} = true ]; then \
     echo "" >> ~/.bashrc && \
-    echo 'export YARN_DIR="/home/zeroc0d3/.yarn"' >> ~/.bashrc && \
+    echo 'export YARN_DIR="/home/laradock/.yarn"' >> ~/.bashrc && \
     echo 'export PATH="$YARN_DIR/bin:$PATH"' >> ~/.bashrc \
+;fi
+
+#####################################
+# PHP Aerospike:
+#####################################
+USER root
+
+ARG INSTALL_AEROSPIKE_EXTENSION=true
+ENV INSTALL_AEROSPIKE_EXTENSION ${INSTALL_AEROSPIKE_EXTENSION}
+
+# Copy aerospike configration for remote debugging
+COPY ./aerospike.ini /etc/php/7.0/cli/conf.d/aerospike.ini
+
+RUN if [ ${INSTALL_AEROSPIKE_EXTENSION} = true ]; then \
+    # Install the php aerospike extension
+    curl -L -o /tmp/aerospike-client-php.tar.gz "https://github.com/luciano-jr/aerospike-client-php/archive/master.tar.gz" \
+    && mkdir -p aerospike-client-php \
+    && tar -C aerospike-client-php -zxvf /tmp/aerospike-client-php.tar.gz --strip 1 \
+    && ( \
+        cd aerospike-client-php/src/aerospike \
+        && phpize \
+        && ./build.sh \
+        && make install \
+    ) \
+    && rm /tmp/aerospike-client-php.tar.gz \
+;fi
+
+RUN if [ ${INSTALL_AEROSPIKE_EXTENSION} = false ]; then \
+    rm /etc/php/7.0/cli/conf.d/aerospike.ini \
 ;fi
 
 #####################################
@@ -303,7 +302,7 @@ RUN if [ ${INSTALL_V8JS_EXTENSION} = true ]; then \
 #####################################
 
 # add ./vendor/bin to non-root user's bashrc (needed for phpunit)
-USER zeroc0d3
+USER laradock
 
 RUN echo "" >> ~/.bashrc && \
     echo 'export PATH="/var/www/vendor/bin:$PATH"' >> ~/.bashrc
@@ -319,7 +318,7 @@ RUN echo "" >> ~/.bashrc && \
 #####################################
 # Laravel Envoy:
 #####################################
-USER zeroc0d3
+USER laradock
 
 ARG INSTALL_LARAVEL_ENVOY=true
 ENV INSTALL_LARAVEL_ENVOY ${INSTALL_LARAVEL_ENVOY}
@@ -332,7 +331,7 @@ RUN if [ ${INSTALL_LARAVEL_ENVOY} = true ]; then \
 #####################################
 # Deployer:
 #####################################
-USER zeroc0d3
+USER laradock
 
 ARG INSTALL_DEPLOYER=false
 ENV INSTALL_DEPLOYER ${INSTALL_DEPLOYER}

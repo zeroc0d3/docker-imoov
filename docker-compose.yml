@@ -7,8 +7,7 @@ services:
     imoov-applications:
         image: tianon/true
         volumes:
-            - ../:/var/www
-            - ../imoov/:/var/www/imoov
+            - ./workspace/imoov:/var/www/imoov
 
 ### Workspace Utilities Container ###########################
 
@@ -34,7 +33,7 @@ services:
             - imoov-applications
         extra_hosts:
             # IMPORTANT: Replace with your Docker Host IP (will be appended to /etc/hosts)
-            - "dockerhost:172.21.0.2"
+            - "dockerhost:172.21.0.99"
         ports:
            - "2222:22"
         tty: true
@@ -62,10 +61,10 @@ services:
             - imoov-workspace
         extra_hosts:
             # IMPORTANT: Replace with your Docker Host IP (will be appended to /etc/hosts)
-            - "dockerhost:172.21.0.2"
+            - "dockerhost:172.21.0.99"
         environment:
-            # IMPORTANT: Set the Remote Interpreter entry matching name to `laravel`
-            - PHP_IDE_CONFIG=serverName=laravel
+            # IMPORTANT: Set the Remote Interpreter entry matching name to `imoov.app`
+            - PHP_IDE_CONFIG=serverName=imoov.app
 
 ### Nginx Server Container ##################################
 

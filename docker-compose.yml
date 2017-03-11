@@ -94,7 +94,8 @@ services:
 ### HHVM Container ##########################################
 
   hhvm:
-    build: ./hhvm
+    build: 
+      context: ./hhvm
       volumes_from:
         - zeroc0d3_apps
       expose:

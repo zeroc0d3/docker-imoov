@@ -62,14 +62,14 @@ APACHE_HOST_LOG_PATH=./logs/apache2
 PHP_SOCKET=php-fpm:9000
 
 ### MYSQL Container
-MYSQL_DATABASE=default
+MYSQL_DATABASE=zeroc0d3_dbname
 MYSQL_USER=zeroc0d3_user
 MYSQL_PASSWORD=zeroc0d3_password
 MYSQL_PORT=3306
 MYSQL_ROOT_PASSWORD=zeroc0d3_root
 
 ### MARIADB Container
-MARIADB_DATABASE=default
+MARIADB_DATABASE=zeroc0d3_dbname
 MARIADB_USER=zeroc0d3_user
 MARIADB_PASSWORD=zeroc0d3_password
 MARIADB_ROOT_PASSWORD=zeroc0d3_root
@@ -77,7 +77,7 @@ MARIADB_PORT=3306
 
 
 ### POSTGRES Container
-POSTGRES_DB=default
+POSTGRES_DB=zeroc0d3_dbname
 POSTGRES_USER=zeroc0d3_user
 POSTGRES_PASSWORD=zeroc0d3_password
 POSTGRES_PORT=5432

@@ -1,6 +1,6 @@
 FROM php:latest
 
-MAINTAINER ZeroC0D3 Team <zeroc0d3.team@gmail.com>
+MAINTAINER Mahmoud Zalt <mahmoud@zalt.me>
 
 RUN apt-get update && apt-get install -y curl
 

@@ -29,7 +29,7 @@ docker-compose build && docker-compose up
        * Read [this](http://stackoverflow.com/questions/17157721/getting-a-docker-containers-ip-address-from-the-host)
      - Open browser: 
        ```
-       http://localhost:8080
+       http://localhost:88
        ```
 
 ## Submodule Docker Imoov:

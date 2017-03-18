@@ -35,7 +35,7 @@ services:
           - YARN_VERSION=${WORKSPACE_TIMEZONE}
           - TZ=${WORKSPACE_TIMEZONE}
       volumes_from:
-        - applications
+          - zeroc0d3_apps
       extra_hosts:
           - "dockerhost:${DOCKER_HOST_IP}"
       ports:
@@ -63,7 +63,7 @@ services:
           - INSTALL_INTL=${PHP_FPM_INSTALL_INTL}
         dockerfile: ${PHP_FPM_DOCKER_FILE}
       volumes_from:
-        - applications
+        - zeroc0d3_apps 
       expose:
         - "9000"
       depends_on:
@@ -81,7 +81,7 @@ services:
         args:
           - PHP_UPSTREAM=php-fpm
       volumes_from:
-          - applications
+          - zeroc0d3_apps
       volumes:
           - ${NGINX_HOST_LOG_PATH}:/var/log/nginx
           - ${NGINX_SITES_PATH}:/etc/nginx/sites-available
@@ -99,7 +99,7 @@ services:
     #     args:
     #       - PHP_SOCKET=${PHP_SOCKET}
     #   volumes_from:
-    #     - applications
+    #     - zeroc0d3_apps 
     #   volumes:
     #     - ${APACHE_HOST_LOG_PATH}:/var/log/apache2
     #   ports:
@@ -113,7 +113,7 @@ services:
     hhvm:
       build: ./hhvm
       volumes_from:
-        - applications
+        - zeroc0d3_apps 
       expose:
         - "9000"
       depends_on:

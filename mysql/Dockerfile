@@ -1,6 +1,6 @@
 FROM mysql:5.7
 
-MAINTAINER Mahmoud Zalt <mahmoud@zalt.me>
+MAINTAINER ZeroC0D3 Team <zeroc0d3.team@gmail.com>
 
 ADD startup /etc/mysql/startup
 

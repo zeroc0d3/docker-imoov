@@ -12,7 +12,7 @@
 
 FROM laradock/workspace:1.3
 
-MAINTAINER Mahmoud Zalt <mahmoud@zalt.me>
+MAINTAINER ZeroC0D3 Team <zeroc0d3.team@gmail.com>
 
 #
 #--------------------------------------------------------------------------
@@ -47,22 +47,6 @@ ARG PGID=1000
 RUN groupadd -g $PGID laradock && \
     useradd -u $PUID -g laradock -m laradock
 
-
-#####################################
-# SOAP:
-#####################################
-USER root
-
-ARG INSTALL_SOAP=false
-ENV INSTALL_SOAP ${INSTALL_SOAP}
-
-RUN if [ ${INSTALL_SOAP} = true ]; then \
-  # Install the PHP SOAP extension
-  apt-get -y update && \
-  add-apt-repository -y ppa:ondrej/php && \
-  apt-get -y install libxml2-dev php7.0-soap && \
-  echo "extension=soap.so" >> /etc/php/7.0/cli/conf.d/40-soap.ini \
-;fi
 
 #####################################
 # Set Timezone
@@ -155,19 +139,6 @@ RUN if [ ${INSTALL_WORKSPACE_SSH} = true ]; then \
 ;fi
 
 #####################################
-# MongoDB:
-#####################################
-
-# Check if Mongo needs to be installed
-ARG INSTALL_MONGO=false
-ENV INSTALL_MONGO ${INSTALL_MONGO}
-RUN if [ ${INSTALL_MONGO} = true ]; then \
-    # Install the mongodb extension
-    pecl install mongodb && \
-    echo "extension=mongodb.so" >> /etc/php/7.0/cli/conf.d/30-mongodb.ini \
-;fi
-
-#####################################
 # Drush:
 #####################################
 USER root
@@ -249,52 +220,6 @@ RUN if [ ${INSTALL_YARN} = true ]; then \
     echo "" >> ~/.bashrc && \
     echo 'export YARN_DIR="/home/laradock/.yarn"' >> ~/.bashrc && \
     echo 'export PATH="$YARN_DIR/bin:$PATH"' >> ~/.bashrc \
-;fi
-
-#####################################
-# PHP Aerospike:
-#####################################
-USER root
-
-ARG INSTALL_AEROSPIKE_EXTENSION=true
-ENV INSTALL_AEROSPIKE_EXTENSION ${INSTALL_AEROSPIKE_EXTENSION}
-
-# Copy aerospike configration for remote debugging
-COPY ./aerospike.ini /etc/php/7.0/cli/conf.d/aerospike.ini
-
-RUN if [ ${INSTALL_AEROSPIKE_EXTENSION} = true ]; then \
-    # Install the php aerospike extension
-    curl -L -o /tmp/aerospike-client-php.tar.gz "https://github.com/luciano-jr/aerospike-client-php/archive/master.tar.gz" \
-    && mkdir -p aerospike-client-php \
-    && tar -C aerospike-client-php -zxvf /tmp/aerospike-client-php.tar.gz --strip 1 \
-    && ( \
-        cd aerospike-client-php/src/aerospike \
-        && phpize \
-        && ./build.sh \
-        && make install \
-    ) \
-    && rm /tmp/aerospike-client-php.tar.gz \
-;fi
-
-RUN if [ ${INSTALL_AEROSPIKE_EXTENSION} = false ]; then \
-    rm /etc/php/7.0/cli/conf.d/aerospike.ini \
-;fi
-
-#####################################
-# PHP V8JS:
-#####################################
-USER root
-
-ARG INSTALL_V8JS_EXTENSION=false
-ENV INSTALL_V8JS_EXTENSION ${INSTALL_V8JS_EXTENSION}
-
-RUN if [ ${INSTALL_V8JS_EXTENSION} = true ]; then \
-    # Install the php V8JS extension
-    add-apt-repository -y ppa:pinepain/libv8-5.4 \
-    && apt-get update \
-    && apt-get install -y php-dev php-pear libv8-5.4 \
-    && pecl install v8js \
-    && echo "extension=v8js.so" >> /etc/php/7.0/cli/php.ini \
 ;fi
 
 #####################################

@@ -1,6 +1,6 @@
 FROM phpmyadmin/phpmyadmin
 
-MAINTAINER Bo-Yi Wu <appleboy.tw@gmail.com>
+MAINTAINER ZeroC0D3 Team <zeroc0d3.team@gmail.com>
 
 # Add volume for sessions to allow session persistence
 VOLUME /sessions
